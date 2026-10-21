@@ -2,13 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.set("trust proxy", 1);
   app.use(cookieParser());
   app.enableCors({
     origin: (origin, callback) => {
-      const allowed = [process.env.CLIENT_URL, 'http://localhost:3000']
+      const allowed = [process.env.CLIENT_URL]
       if (!origin || allowed.includes(origin)) {
         callback(null, true);
       } else {
