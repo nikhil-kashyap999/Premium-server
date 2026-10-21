@@ -95,13 +95,13 @@ export class AuthController {
     res.cookie('access_token', data.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 30 * 60 * 1000,
     });
     res.cookie('refresh_token', data.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
     });
     if (clientType === 'mobile') return data;
