@@ -1,0 +1,1 @@
+export type UserContactType = { [userid: string]: string };
