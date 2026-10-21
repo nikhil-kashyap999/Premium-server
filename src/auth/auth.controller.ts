@@ -84,6 +84,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @ClientType() clientType: string,
   ) {
+    console.log("login Dto : ", loginDTO);
     const data = await this.authService.login(loginDTO);
     return sendAuthTokens(
       req,
