@@ -25,7 +25,7 @@ async function bootstrap() {
     }),
   );
   app.setGlobalPrefix('api'); // all routes become /api/...
-  await app.listen(3001, '0.0.0.0');
-  // console.log('we are running at : http://localhost:3001');
+  const port = process.env.PORT || 3001;
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();
