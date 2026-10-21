@@ -13,7 +13,7 @@ const isProd = process.env.NODE_ENV === 'production';
 const baseCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: 'lax', // frontend/backend alag domain pe ho to 'none' + secure chahiye
+  sameSite: 'none', // frontend/backend alag domain pe ho to 'none' + secure chahiye
 };
 
 export function getClientType(req: Request): ClientType {
