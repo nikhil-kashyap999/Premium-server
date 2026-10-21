@@ -86,26 +86,26 @@ export class AuthController {
   ) {
     console.log("login Dto : ", loginDTO);
     const data = await this.authService.login(loginDTO);
-    return sendAuthTokens(
-      req,
-      res,
-      { accessToken: data.accessToken, refreshToken: data.refreshToken },
-      { message: data.message, user: data.user },
-    );
-    // res.cookie('access_token', data.accessToken, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === 'production',
-    //   sameSite: 'lax',
-    //   maxAge: 30 * 60 * 1000,
-    // });
-    // res.cookie('refresh_token', data.refreshToken, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === 'production',
-    //   sameSite: 'lax',
-    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
-    // });
-    // if (clientType === 'mobile') return data;
-    // else return rest;
+    // return sendAuthTokens(
+    //   req,
+    //   res,
+    //   { accessToken: data.accessToken, refreshToken: data.refreshToken },
+    //   { message: data.message, user: data.user },
+    // );
+    res.cookie('access_token', data.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 60 * 1000,
+    });
+    res.cookie('refresh_token', data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+    });
+    if (clientType === 'mobile') return data;
+    else return data;
   }
   // -------------------------------all-users--------------------------------------
   @Get('all')
