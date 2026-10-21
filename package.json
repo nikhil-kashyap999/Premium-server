@@ -53,6 +53,8 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@nestjs/throttler": "^6.5.0",
+    "@swc/cli": "^0.8.1",
+    "@swc/core": "^1.16.18",
     "@types/cookie": "^1.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
