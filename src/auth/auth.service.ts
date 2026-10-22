@@ -108,9 +108,8 @@ export class AuthService {
     return res;
   }
   async socketToken(req) {
-    return await this.jwtService.signAsync({ sub: req.user.sub, username: req.user.username, role: req.user.role, purpose: 'ws' }, { secret: process.env.JWT_WS_SECRET, expiresIn: '2m' });
+    return await this.jwtService.signAsync({ sub: req.user.sub, username: req.user.username, role: req.user.role, purpose: 'ws' }, { secret: process.env.JWT_SECRET, expiresIn: '2m' });
   }
-  
   // -----------------------------Helper functions----------------------------------
   generateTokens(userID: any, username: string, role: UserRole) {
     const payload = { sub: userID, username, role };
