@@ -166,6 +166,10 @@ export class AuthController {
     };
   }
 
+  @Get('socket-token')
+  async socketToken(@Req() req){
+  }
+
   @Get('test')
   // @UseGuards(JwtAuthGuard)
   test(@Req() req: Request, @ClientType() clientType: string) {

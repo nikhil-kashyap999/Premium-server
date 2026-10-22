@@ -22,7 +22,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async registerNewUser(userDto: CreateUserDto) {
     const { user, OTP } = await this.userService.createUser(userDto);
@@ -107,6 +107,10 @@ export class AuthService {
     const res = await this.userService.logout(userid);
     return res;
   }
+  async socketToken(req) {
+    return await this.jwtService.signAsync({ sub: req.user.sub, username: req.user.username, role: req.user.role, purpose: 'ws' }, { secret: process.env.JWT_WS_SECRET, expiresIn: '2m' });
+  }
+  
   // -----------------------------Helper functions----------------------------------
   generateTokens(userID: any, username: string, role: UserRole) {
     const payload = { sub: userID, username, role };
