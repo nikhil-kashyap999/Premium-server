@@ -167,7 +167,9 @@ export class AuthController {
   }
 
   @Get('socket-token')
-  async socketToken(@Req() req){
+  async socketToken(@Req() req) {
+    const token = await this.authService.socketToken(req);
+    return { message: 'ws token sent', success: true, token };
   }
 
   @Get('test')
