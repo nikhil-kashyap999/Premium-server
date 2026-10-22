@@ -11,8 +11,9 @@ export const wsAuthMiddleware = (jwtService: JwtService, jwtSecret: string) => {
       if (!token) {
         return next(new Error('No token provided'));
       }
-
+      console.log("Token : ", token);
       const payload = jwtService.verify(token, { secret: jwtSecret });
+      console.log("payload  : ", payload);
       socket.data.user = payload;
       next();
     } catch (err) {
