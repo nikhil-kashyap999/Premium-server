@@ -83,7 +83,6 @@ export class AuthController {
     @Body() loginDTO: LoginDTO,
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log("login Dto : ", loginDTO);
     const data = await this.authService.login(loginDTO);
     return sendAuthTokens(
       req,
@@ -170,7 +169,6 @@ export class AuthController {
   @Get('socket-token')
   @UseGuards(JwtAuthGuard)
   async socketToken(@Req() req) {
-    console.log("req : ",req.user);
     const token = await this.authService.socketToken(req);
     return { message: 'ws token sent', success: true, token };
   }

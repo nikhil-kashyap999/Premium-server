@@ -49,18 +49,15 @@ export class ChatGateway
 
   async handleConnection(client: Socket) {
     const userId = client.data.user?.sub;
-    console.log("userid : ", userId);
-    console.log("client.data.user?.sub : ", client.data.user?.sub);
-    console.log("client.data.user : ", client.data.user);
     if (!userId) return client.disconnect(true);
 
     const cameOnline = this.presenceService.add(userId, client.id);
     await client.join(`user:${userId}`);
     if (cameOnline) {
       await this.updateUserPresence(userId);
-      console.log(
-        `✅ Client connected: ${client.id} | Joined room: user:${userId}`,
-      );
+      // console.log(
+      //   `✅ Client connected: ${client.id} | Joined room: user:${userId}`,
+      // );
     }
   }
 
