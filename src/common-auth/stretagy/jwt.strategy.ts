@@ -55,12 +55,14 @@ export interface userPayloadType {
   sub: string;
   username: string;
   role: UserRole;
+  email?: string;
 }
 
 interface userReturnType {
   userId: string;
   username: string;
   role: UserRole;
+  email?: string;
 }
 
 const cookieExtractor = (req: Request): string | null => {
@@ -89,6 +91,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       userId: payload.sub,
       username: payload.username,
       role: payload.role,
+      email: payload.email,
     };
   }
 }

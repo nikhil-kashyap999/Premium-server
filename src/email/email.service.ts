@@ -94,7 +94,35 @@ export class EmailService {
     }
     return 'user verified sucessfully, Pleae login to your account';
   }
+  async sendForgetPasswordOTP(to: string, OTP: string) {
+    try {
+      const result = await this.client.transactionalEmails.sendTransacEmail({
+        sender: { email: this.fromEmail, name: this.fromName },
+        to: [{ email: to }],
+        subject: 'Your PREMIUM Password Recovery code',
+        htmlContent: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1a2c1c;">Password recovery OTP</h2>
+        <p>This is your Password recovery code — vlaid for 10 minute:</p>
+        <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #3d5c3f; padding: 16px 0;">
+          ${OTP}
+        </div>
+        <p style="color: #888; font-size: 13px;">If you didn't request for this, then ignore this email.</p>
+      </div>
+    `,
+      });
+      this.logger.log(
+        `OTP email sent to ${to} (messageId: ${result.messageId})`,
+      );
+    } catch (error: any) {
+      this.logger.error(`Failed to send OTP email to ${to}`, error);
+      if (error.statusCode === 400) {
+        throw new BadRequestException('Bad request, Failed to send OTP');
+      }
+      throw new BadRequestException('Bad request, Failed to send OTP');
+    }
 
+  }
   async verifyOTPHash(plainOTP: string, HashedOTP: string): Promise<boolean> {
     return await bcrypt.compare(plainOTP, HashedOTP);
   }

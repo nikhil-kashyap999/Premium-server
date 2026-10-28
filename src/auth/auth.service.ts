@@ -1,20 +1,23 @@
 import {
+  BadGatewayException,
   BadRequestException,
   ForbiddenException,
-  HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from '../user/DTO/CreateUser.Dto';
 import { UserService } from '../user/user.service';
 import { LoginDTO } from './DTO/Login.Dto';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { UserRole } from 'src/user/schemas/user.schema';
+import { UserDocument, UserRole } from 'src/user/schemas/user.schema';
 import { EmailService } from '../email/email.service';
 import OTPGenerator from 'src/utils/OTP-generator.util';
-import { sendAuthTokens } from 'src/utils/auth-response.util';
+import { InjectModel } from '@nestjs/mongoose';
+import { PasswordReset, PasswordResetDocument } from './schema/password-reset.schema';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+
+
 
 @Injectable()
 export class AuthService {
@@ -22,6 +25,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
+    @InjectModel(PasswordReset.name) private readonly passwordResetModel: Model<PasswordResetDocument>
   ) { }
 
   async registerNewUser(userDto: CreateUserDto) {
@@ -54,10 +58,10 @@ export class AuthService {
   async login(loginDTO: LoginDTO) {
     const foundUser = await this.userService.findByUsername(loginDTO.username);
     if (!foundUser) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new BadRequestException('Invalid credentials');
     }
     if (!(await this.verifyPassword(loginDTO.password, foundUser.password))) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new BadRequestException('Invalid credentials');
     }
     if (!foundUser.isVerified) {
       throw new ForbiddenException(
@@ -110,6 +114,32 @@ export class AuthService {
   async socketToken(req) {
     return await this.jwtService.signAsync({ sub: req.user.userId, username: req.user.username, role: req.user.role, purpose: 'ws' }, { secret: process.env.JWT_SECRET, expiresIn: '2m' });
   }
+
+  async resetPassword(email: string, otp: string, newpassword: string) {
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) throw new BadRequestException("Invalid user");
+    const record = await this.passwordResetModel.findOne({ userId: user._id });
+    if (!record || record.expiresAt < new Date() || record.attempts >= 5) throw new BadRequestException('Invalid request');
+    if (!await bcrypt.compare(otp, record.otpHash)) {
+      await this.passwordResetModel.updateOne({ _id: record._id }, { $inc: { attempts: 1 } });
+      throw new BadRequestException("Invalid request");
+    }
+    user.password = await bcrypt.hash(newpassword, 10);
+    await user.save();
+    await this.passwordResetModel.deleteOne({ _id: record._id });
+    return "Password reset successfully"
+  };
+  async forgetPassword(email: string) {
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) throw new BadRequestException("Invalid user");
+    const OTP = OTPGenerator().toString();
+    const hashedOTP = await bcrypt.hash(OTP, 10);
+    await this.passwordResetModel.findOneAndUpdate({ userId: user._id }, { otpHash: hashedOTP, expiresAt: new Date(Date.now() + 10 * 60 * 1000), attampts: 0 }, { upsert: true, returnDocument: "after" });
+    await this.emailService.sendForgetPasswordOTP(email, OTP);
+    const token = this.jwtService.sign({ sub: user._id, email: user.email, role: user.role }, { secret: process.env.JWT_SECRET, expiresIn: "5m" });
+    return { message: "Recovery OTP sent successfully", token };
+  };
+
   // -----------------------------Helper functions----------------------------------
   generateTokens(userID: any, username: string, role: UserRole) {
     const payload = { sub: userID, username, role };

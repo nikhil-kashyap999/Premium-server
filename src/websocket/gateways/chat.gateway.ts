@@ -86,7 +86,7 @@ export class ChatGateway
 
   @SubscribeMessage('ping')
   handlePing(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
-    console.log('📩 Received from client:', data);
+    // console.log('📩 Received from client:', data);
     client.emit('pong', 'Hello from server');
   }
 

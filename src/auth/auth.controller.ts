@@ -22,6 +22,8 @@ import { JwtAuthGuard } from 'src/common-auth/guards/jwt-auth.guard';
 import { OTPDto } from './DTO/OTP.dto';
 import { ClientType } from './decorators/client.type.decorator';
 import { sendAuthTokens } from 'src/utils/auth-response.util';
+import { ForgetPasswordDto } from './DTO/ForgetPassword.dto';
+import { PasswordResetDto } from './DTO/ResetPassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -61,7 +63,6 @@ export class AuthController {
       message: 'user verified successfully, Now You can login to your account',
     };
   }
-
   @Get('resend-otp')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -74,6 +75,21 @@ export class AuthController {
       statusCode: HttpStatus.OK,
       message: msg,
     };
+  }
+  @Post('forget-password')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async forgetPassword(@Body() body: ForgetPasswordDto) {
+    const {message, token} = await this.authService.forgetPassword(body.Email);
+    return { success: true, statuCode: HttpStatus.ACCEPTED, message: message,token}
+  }
+  @Post('reset-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.ACCEPTED)
+  async resetPassword(@Body() body: PasswordResetDto, @Req() req) {
+    const userEmail = req.user.email;
+    if (!userEmail) throw new BadRequestException('User detail missing');
+    const message = await this.authService.resetPassword(userEmail ,body.OTP, body.newPassword);
+    return { success: true, statusCode: HttpStatus.ACCEPTED, message };
   }
   // -------------------------------Login--------------------------------------
   @Post('login')

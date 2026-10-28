@@ -100,6 +100,11 @@ export class UserService {
     }
   }
 
+  async getUserByEmail(email:string){
+    const user = await this.userModel.findOne({email:email});
+    if (!user) return false;
+    return user;
+  }
   // ------------------------------------------ Get user by userid ---------------------------------
   async findById(userid: string) {
     const user = await this.userModel.findById(userid);
