@@ -122,7 +122,7 @@ export class AuthService {
     if (!record || record.expiresAt < new Date() || record.attempts >= 5) throw new BadRequestException('Invalid request');
     if (!await bcrypt.compare(otp, record.otpHash)) {
       await this.passwordResetModel.updateOne({ _id: record._id }, { $inc: { attempts: 1 } });
-      throw new BadRequestException("Invalid request");
+      throw new BadRequestException("Please enter correct OTP");
     }
     user.password = await bcrypt.hash(newpassword, 10);
     await user.save();
