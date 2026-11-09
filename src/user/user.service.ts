@@ -20,6 +20,7 @@ import {
   ConversationDocument,
 } from 'src/websocket/schema/conversations.schema';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { getConversationId } from 'src/utils/getConversationid';
 
 @Injectable()
 export class UserService {
@@ -31,7 +32,7 @@ export class UserService {
     @InjectModel(Conversation.name)
     private convoModel: Model<ConversationDocument>,
     private eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   // ------------------------------------------ Register new user ---------------------------------
   async createUser(data: CreateUserDto) {
@@ -100,8 +101,8 @@ export class UserService {
     }
   }
 
-  async getUserByEmail(email:string){
-    const user = await this.userModel.findOne({email:email});
+  async getUserByEmail(email: string) {
+    const user = await this.userModel.findOne({ email: email });
     if (!user) return false;
     return user;
   }
@@ -243,7 +244,7 @@ export class UserService {
 
     const senderId = request.senderId.toString();
     const receiverId = request.receiverId.toString();
-    const directKey = [senderId, receiverId].sort().join(':');
+    const directKey = getConversationId(senderId, receiverId);
 
     try {
       await Promise.all([

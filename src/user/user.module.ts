@@ -16,8 +16,8 @@ import {
     CommonAuthModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
-      { name: ChatRequest.name, schema: ChatRequestSchema },
       { name: Contacts.name, schema: ContactSchema },
+      { name: ChatRequest.name, schema: ChatRequestSchema },
       { name: Conversation.name, schema: ConversationSchema },
     ]),
   ],

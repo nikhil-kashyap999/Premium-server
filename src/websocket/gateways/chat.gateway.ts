@@ -18,6 +18,8 @@ import { PresenceService } from '../presence.service';
 import { wsAuthMiddleware } from '../middlewares/ws-auth.moddleware';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MessageStatusDto } from '../dto/MessageStatus.dto';
+import { StatusType } from '../schema/message.schema';
+import { toMessageDto } from './mapper';
 
 
 @WebSocketGateway({
@@ -86,7 +88,6 @@ export class ChatGateway
 
   @SubscribeMessage('ping')
   handlePing(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
-    // console.log('📩 Received from client:', data);
     client.emit('pong', 'Hello from server');
   }
 
@@ -98,29 +99,24 @@ export class ChatGateway
     const senderid = client.data.user.sub;
     const room = `user:${dto.receiverid}`;
     const senderRoom = `user:${senderid}`;
-    const message = await this.messageService.send(senderid, dto);
-    this.server.to(room).emit('message:new', message);
-    if (this.presenceService.isOnline(dto.receiverid)) {
+    const isReceiverOnline = this.presenceService.isOnline(dto.receiverid);
+    console.log("message send called");
+    try {
+      const message = await this.messageService.Save(senderid, dto, isReceiverOnline);
+      console.log("Try");
+      this.server.to(room).emit('message:new', toMessageDto(message));
       this.server.to(senderRoom).emit('message:ack', {
+        status: message.status,
+        messageid: message.messageId,
+        receiverid: message.receiverId.toString(),
+      });
+    } catch(e) {
+      console.log("Catch : ",e)
+      this.server.to(senderRoom).emit('message:error', {
         messageid: dto.messageid,
         receiverid: dto.receiverid,
       });
     }
-
-  }
-
-  @SubscribeMessage('message:status')
-  async onMessageStatus(
-    @MessageBody() dto: MessageStatusDto,
-    @ConnectedSocket() client: Socket,
-  ) {
-    const room = `user:${dto.receiverid}`;
-    this.server.to(room).emit('message:status', {
-      messageid: dto.messageid,
-      receiverid: dto.receiverid,
-      status: dto.status,
-      senderid: client.data.user.sub,
-    });
   }
 
   @OnEvent('invite.sent')

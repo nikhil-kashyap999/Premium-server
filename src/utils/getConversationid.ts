@@ -1,0 +1,1 @@
+export const getConversationId = (senderid: string, receiverid: string) => ([senderid, receiverid].sort().join(':'));
