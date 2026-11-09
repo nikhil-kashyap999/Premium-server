@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 @Schema({ _id: false })
 class Media {
@@ -42,17 +42,8 @@ export class User {
   @Prop({ expires: '15m' })
   unverifiedExpiresAt?: Date;
 
-  @Prop({default:0})
-  otpAttempts!:number;
-
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    default: [],
-  })
-  contacts!: mongoose.Types.ObjectId[];
-
-  @Prop({ type: [mediaSchema], default: [] })
-  media!: Media[];
+  @Prop({ default: 0 })
+  otpAttempts!: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
