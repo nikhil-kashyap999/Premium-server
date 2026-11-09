@@ -100,19 +100,41 @@ export class ChatGateway
     const room = `user:${dto.receiverid}`;
     const senderRoom = `user:${senderid}`;
     const isReceiverOnline = this.presenceService.isOnline(dto.receiverid);
-    console.log("message send called");
     try {
       const message = await this.messageService.Save(senderid, dto, isReceiverOnline);
-      console.log("Try");
+
       this.server.to(room).emit('message:new', toMessageDto(message));
+
       this.server.to(senderRoom).emit('message:ack', {
         status: message.status,
         messageid: message.messageId,
         receiverid: message.receiverId.toString(),
       });
-    } catch(e) {
-      console.log("Catch : ",e)
+    } catch (e) {
       this.server.to(senderRoom).emit('message:error', {
+        messageid: dto.messageid,
+        receiverid: dto.receiverid,
+      });
+    }
+  }
+
+  @SubscribeMessage('message:status')
+  async onMessageStatus(
+    @MessageBody() dto: MessageStatusDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = `user:${dto.receiverid}`;
+    try {
+      const msg = await this.messageService.updateMessageStatus(dto.messageid, dto.status);
+
+      this.server.to(room).emit('message:status', {
+        status: msg.status,
+        messageid: dto.messageid,
+        receiverid: dto.receiverid,
+        senderid: client.data.user.sub,
+      });
+    } catch (e) {
+      this.server.to(room).emit('message:error', {
         messageid: dto.messageid,
         receiverid: dto.receiverid,
       });

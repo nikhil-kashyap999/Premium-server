@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { getConversationId } from 'src/utils/getConversationid';
-import { Message, MessageDocument, MessageType } from './schema/message.schema';
+import { Message, MessageDocument, MessageType, StatusType } from './schema/message.schema';
 import { Conversation, ConversationDocument } from './schema/conversations.schema';
 
 
@@ -17,7 +17,7 @@ type PayloadType = {
 @Injectable()
 export class MessageService {
   constructor(@InjectModel(Message.name) private readonly messageModal: Model<MessageDocument>,
-    @InjectModel(Conversation.name) private readonly convoModal: Model<ConversationDocument>) {}
+    @InjectModel(Conversation.name) private readonly convoModal: Model<ConversationDocument>) { }
 
   async Save(
     senderid: string,
@@ -35,7 +35,7 @@ export class MessageService {
         messageId: payload.messageid,
         receiverId: payload.receiverid,
         conversationId: conversationId?._id,
-        status: isDelivered ? "Delivered" : "Pending",
+        status: isDelivered ? "Delivered" : "Sent",
         ...(isDelivered && { deliveredAt: new Date() }),
       })
     } catch (err: any) {
@@ -43,6 +43,22 @@ export class MessageService {
         const existing = await this.messageModal.findOne({ messageId: payload.messageid });
         if (existing) return existing;
       }
+      throw err;
+    }
+  }
+
+  async updateMessageStatus(msgid: string, status: StatusType): Promise<MessageDocument> {
+    try {
+      const message = await this.messageModal
+        .findOneAndUpdate(
+          { messageId: msgid },
+          { status },
+          { returnDocument:"after" },
+        )
+        .lean();
+      if (!message) throw new Error("Message not available");
+      return message;
+    } catch (err) {
       throw err;
     }
   }
